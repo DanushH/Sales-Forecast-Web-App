@@ -1,0 +1,30 @@
+{% extends "layout.html" %} {% block body %}
+
+<form action="/predict" , method="post">
+    <input name="date" , type="date" />
+    <br />
+    <select name="country" required>
+        <option disabled selected value="">Country</option>
+        {% for country in countries %}
+        <option value="{{ country }}">{{ country }}</option>
+        {% endfor %}
+    </select>
+    <br />
+    <select name="store" required>
+        <option disabled selected value="">Store</option>
+        {% for store in stores %}
+        <option value="{{ store }}">{{ store }}</option>
+        {% endfor %}
+    </select>
+    <br />
+    <select name="product" required>
+        <option disabled selected value="">Product</option>
+        {% for product in products %}
+        <option value="{{ product }}">{{ product }}</option>
+        {% endfor %}
+    </select>
+    <br />
+    <button type="submit">Submit</button>
+</form>
+
+{% endblock %}

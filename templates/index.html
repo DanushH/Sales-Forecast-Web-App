@@ -1,7 +1,7 @@
 {% extends "layout.html" %} {% block body %}
 
 <form action="/predict" , method="post">
-    <input name="date" , type="date" />
+    <input name="date" type="date" required />
     <br />
     <select name="country" required>
         <option disabled selected value="">Country</option>

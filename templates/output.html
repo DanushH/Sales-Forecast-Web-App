@@ -1,7 +1,29 @@
-{% extends "layout.html" %} 
-{% block body %} 
+{% extends "layout.html" %} {% block body %}
 
-        Prediction for: 
-                date country store product 
-                
+<h1>Recent Predictions</h1>
+
+<hr>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Country</th>
+            <th>Store</th>
+            <th>Product</th>
+            <th>Sales Prediction</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, value in predictions|dictsort(reverse=true) %}
+        <tr>
+            <td>{{key}}</td>
+            <td>{{value[0]}}</td>
+            <td>{{value[1]}}</td>
+            <td>{{value[2]}}</td>
+            <td>{{value[3]}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

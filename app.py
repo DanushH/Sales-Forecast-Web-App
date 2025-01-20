@@ -12,6 +12,7 @@ PRODUCT = [
     "Kerneler",
     "Kerneler Dark Mode",
 ]
+PREDICTIONS = {}
 
 
 @app.route("/", methods=["GET"])
@@ -23,13 +24,23 @@ def index():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+
+    date = request.form.get("date")
+    country = request.form.get("country")
+    store = request.form.get("store")
+    product = request.form.get("product")
+
     if (
-        not request.form.get("date")
-        or request.form.get("country") not in COUNTRY
-        or request.form.get("store") not in STORE
-        or request.form.get("product") not in PRODUCT
+        not date
+        or country not in COUNTRY
+        or store not in STORE
+        or product not in PRODUCT
     ):
         pass
         # error page to be done
 
-    return render_template("output.html")
+    sales_prediction = 100  # code to be done
+
+    PREDICTIONS[date] = [country, store, product, sales_prediction]
+
+    return render_template("output.html", predictions=PREDICTIONS)

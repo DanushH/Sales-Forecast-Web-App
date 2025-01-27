@@ -2,7 +2,7 @@
 
 <h1>Recent Predictions</h1>
 
-<hr>
+<hr />
 
 <table>
     <thead>
@@ -14,16 +14,18 @@
             <th>Sales Prediction</th>
         </tr>
     </thead>
+
     <tbody>
-        {% for key, value in predictions|dictsort(reverse=true) %}
+        {% for prediction in predictions %}
         <tr>
-            <td>{{key}}</td>
-            <td>{{value[0]}}</td>
-            <td>{{value[1]}}</td>
-            <td>{{value[2]}}</td>
-            <td>{{value[3]}}</td>
+            <td>{{ prediction.date }}</td>
+            <td>{{ prediction.country }}</td>
+            <td>{{ prediction.store }}</td>
+            <td>{{ prediction.product }}</td>
+            <td>{{ prediction.prediction }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
 {% endblock %}

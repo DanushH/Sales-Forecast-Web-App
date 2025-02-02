@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_session import Session
+from flask_bcrypt import Bcrypt
 import mysql.connector
 from dotenv import load_dotenv
 import os
@@ -8,13 +10,21 @@ load_dotenv()
 
 app = Flask(__name__)
 
+bcrypt = Bcrypt(app)
+
+# Session Configuration
+app.config["SECRET_KEY"] = os.urandom(24)
+app.config["SESSION_TYPE"] = "filesystem"
+
+# Session Initialization
+Session(app)
 
 # MySQL Configuration
 db_config = {
     "user": os.getenv("DB_USER"),
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST"),
-    "database": os.getenv("DB_NAME")
+    "database": os.getenv("DB_NAME"),
 }
 
 
@@ -29,8 +39,69 @@ PRODUCT = [
 ]
 
 
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        username = request.form["username"]
+        email = request.form["email"]
+        password = request.form["password"]
+        hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+
+        try:
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+                (username, email, hashed_password),
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            flash("Account created successfully! Please log in.", "success")
+            return redirect(url_for("login"))
+
+        except mysql.connector.IntegrityError:
+            flash("Username or email already exists!", "danger")
+
+    return render_template("signup.html")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if user and bcrypt.check_password_hash(user["password"], password):
+            session["user"] = user["username"]
+            flash("Login successful!", "success")
+            return redirect(url_for("index"))
+        else:
+            flash("Invalid username or password!", "danger")
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    flash("You have been logged out.", "info")
+    return redirect(url_for("login"))
+
+
 @app.route("/", methods=["GET"])
 def index():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
     return render_template(
         "index.html", countries=COUNTRY, stores=STORE, products=PRODUCT
     )
@@ -59,7 +130,7 @@ def insert_to_db(date, country, store, product, prediction):
         conn.close()
 
 
-def fetch_frm_db():
+def fetch_from_db():
 
     try:
         conn = mysql.connector.connect(**db_config)
@@ -110,6 +181,6 @@ def predict():
 
     insert_to_db(date, country, store, product, prediction)
 
-    predictions = fetch_frm_db()
+    predictions = fetch_from_db()
 
     return render_template("output.html", predictions=predictions)

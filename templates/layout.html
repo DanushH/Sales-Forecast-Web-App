@@ -3,10 +3,17 @@
 <html lang="en">
     <head>
         <meta name="viewport" , content="initial-scale=1, width=device-width" />
-        <title>Hello Title</title>
+        <title>Sales Prediction</title>
     </head>
 
     <body>
+        {% if 'user' in session %}
+        <p>Welcome, {{ session['user'] }}!</p>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+
+        <br />
+
         {% block body %}{% endblock %}
     </body>
 </html>

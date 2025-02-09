@@ -44,7 +44,7 @@ def signup():
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
-                        "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+                        "INSERT INTO user (username, email, password) VALUES (%s, %s, %s)",
                         (username, email, hashed_password),
                     )
                     conn.commit()
@@ -65,7 +65,7 @@ def login():
 
         with get_db_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+                cursor.execute("SELECT * FROM user WHERE username = %s", (username,))
                 user = cursor.fetchone()
 
         if user and bcrypt.check_password_hash(user["password"], password):
@@ -141,7 +141,7 @@ def get_user_id(username):
     try:
         with get_db_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+                cursor.execute("SELECT id FROM user WHERE username = %s", (username,))
                 user = cursor.fetchone()
                 return user.get("id") if user else None
 
@@ -157,7 +157,7 @@ def insert_to_db(user_id, date, country, store, product, prediction):
             with conn.cursor(dictionary=True) as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO predictions (user_id, date, country, store, product, prediction)
+                    INSERT INTO prediction (user_id, date, country, store, product, prediction)
                     VALUES (%s, %s, %s, %s, %s, %s)
                     """,
                     (user_id, date, country, store, product, prediction),
@@ -179,7 +179,7 @@ def fetch_from_db(user_id):
                 cursor.execute(
                     """
                     SELECT date, country, store, product, prediction
-                    FROM predictions 
+                    FROM prediction 
                     WHERE user_id = %s 
                     ORDER BY date DESC
                     LIMIT 10

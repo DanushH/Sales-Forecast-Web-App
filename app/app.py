@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_session import Session
 from flask_bcrypt import Bcrypt
 import mysql.connector
+import os
 import logging
 import config
 
@@ -19,10 +20,14 @@ Session(app)
 db_config = config.DB_CONFIG
 
 # Set up logging configuration
+if not os.path.exists('logging'):
+    os.makedirs('logging')
+    
 logging.basicConfig(
     level=logging.ERROR,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="app.log",
+    filename="logging/app.log",
+    filemode='a',
 )
 
 # Load constants for form data
@@ -199,3 +204,7 @@ def fetch_from_db(user_id):
 def calculate_prediction(date, country, store, product):
     """Dummy function for sales prediction logic."""
     return 100  # Placeholder prediction
+
+
+if __name__ == "__main__":
+    app.run(debug=True)

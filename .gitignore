@@ -175,3 +175,6 @@ flask_session/
 
 # Config files
 config.py
+
+# log files
+logging

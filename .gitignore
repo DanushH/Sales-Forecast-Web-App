@@ -181,3 +181,4 @@ logging/
 
 # data
 data/raw_data/
+data/cleaned/

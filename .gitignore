@@ -177,4 +177,7 @@ flask_session/
 config.py
 
 # log files
-logging
+logging/
+
+# data
+data/raw_data/

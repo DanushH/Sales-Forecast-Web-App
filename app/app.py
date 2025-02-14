@@ -20,14 +20,14 @@ Session(app)
 db_config = config.DB_CONFIG
 
 # Set up logging configuration
-if not os.path.exists('logging'):
-    os.makedirs('logging')
-    
+if not os.path.exists("logging"):
+    os.makedirs("logging")
+
 logging.basicConfig(
     level=logging.ERROR,
     format="%(asctime)s - %(levelname)s - %(message)s",
     filename="logging/app.log",
-    filemode='a',
+    filemode="a",
 )
 
 # Load constants for form data

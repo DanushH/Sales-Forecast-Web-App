@@ -46,6 +46,7 @@ This web application allows users to input data and receive sales predictions ba
 
 4. Run the Flask app:
    ```bash
+   set FLASK_APP=app.app
    flask run
    ```
 

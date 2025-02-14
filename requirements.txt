@@ -3,3 +3,4 @@ flask-mysql-connector
 python-dotenv
 flask-session
 flask-bcrypt
+kaggle

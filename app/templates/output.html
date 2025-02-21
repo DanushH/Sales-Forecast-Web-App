@@ -18,11 +18,11 @@
     <tbody>
         {% for prediction in predictions %}
         <tr>
-            <td>{{ prediction.date }}</td>
-            <td>{{ prediction.country }}</td>
-            <td>{{ prediction.store }}</td>
-            <td>{{ prediction.product }}</td>
-            <td>{{ prediction.prediction }}</td>
+            <td>{{ prediction.prediction_date }}</td>
+            <td>{{ prediction.prediction_country }}</td>
+            <td>{{ prediction.prediction_store }}</td>
+            <td>{{ prediction.prediction_product }}</td>
+            <td>{{ prediction.prediction_prediction }}</td>
         </tr>
         {% endfor %}
     </tbody>

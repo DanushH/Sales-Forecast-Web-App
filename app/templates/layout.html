@@ -7,8 +7,8 @@
     </head>
 
     <body>
-        {% if 'user' in session %}
-        <p>Welcome, {{ session['user'] }}!</p>
+        {% if 'user_name' in session %}
+        <p>Welcome, {{ session['user_name'] }}!</p>
         <a href="{{ url_for('logout') }}">Logout</a>
         <a href="{{ url_for('index') }}">Home</a>
         <a href="{{ url_for('predict') }}">Predictions</a>

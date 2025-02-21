@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 import logging
+import joblib
+from sklearn.model_selection import train_test_split
 
 # Set up logging configuration
 logging.basicConfig(
@@ -43,17 +45,26 @@ def clean_data():
     train_data.drop(columns=["date"], inplace=True)
     logging.info("Extracted date-related features and dropped 'date' column.")
 
-    # Save cleaned data
+    # Ensure cleaned data folder exists
     cleaned_data_folder = "data/cleaned"
-    cleaned_data_file_path = f"{cleaned_data_folder}/train_cleaned.csv"
-
-    # Create a folder for the dataset if it doesn't exist
     if not os.path.exists(cleaned_data_folder):
         os.makedirs(cleaned_data_folder)
         logging.info(f"Created directory: {cleaned_data_folder}")
 
-    train_data.to_csv(cleaned_data_file_path, index=False)
-    logging.info(f"Cleaned data saved to {cleaned_data_file_path}")
+    # Separate features and target
+    X = train_data.drop(columns=["num_sold"])
+    y = train_data["num_sold"]
+
+    # Split train and validation sets
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    logging.info("Split data into train and validation sets.")
+
+    # Save cleaned data
+    cleaned_data_file_path = f"{cleaned_data_folder}/cleaned_data.pkl"
+    joblib.dump((X_train, X_val, y_train, y_val), cleaned_data_file_path)
+    logging.info(f"Saved cleaned and split data to {cleaned_data_file_path}")
 
 
 if __name__ == "__main__":

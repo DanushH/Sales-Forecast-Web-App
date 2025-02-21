@@ -40,19 +40,30 @@ PRODUCT = config.PRODUCT
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        username = request.form["username"]
-        email = request.form["email"]
-        password = request.form["password"]
-        hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+        user_name = request.form["user_name"]
+        user_email = request.form["user_email"]
+        user_password = request.form["user_password"]
+        hashed_user_password = bcrypt.generate_password_hash(user_password).decode(
+            "utf-8"
+        )
 
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
-                        "INSERT INTO user (username, email, password) VALUES (%s, %s, %s)",
-                        (username, email, hashed_password),
+                        "INSERT INTO user (user_name, user_email, user_password) VALUES (%s, %s, %s)",
+                        (user_name, user_email, hashed_user_password),
                     )
                     conn.commit()
+
+                    # Save sign-up action
+                    user_id = cursor.lastrowid
+                    cursor.execute(
+                        "INSERT INTO activity (activity_user_id, activity_action) VALUES (%s, %s)",
+                        (user_id, "Signed up"),
+                    )
+                    conn.commit()
+
                     flash("Account created successfully! Please log in.", "success")
                     return redirect(url_for("login"))
 
@@ -64,18 +75,38 @@ def signup():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        user_name = request.form.get("user_name", "").strip()
+        user_password = request.form.get("user_password", "").strip()
+
+        if not user_name or not user_password:
+            flash("Username and password are required!", "danger")
+            return render_template("login.html"), 400
 
         with get_db_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT * FROM user WHERE username = %s", (username,))
-                user = cursor.fetchone()
+                cursor.execute("SELECT * FROM user WHERE user_name = %s", (user_name,))
+                current_user = cursor.fetchone()
 
-        if user and bcrypt.check_password_hash(user["password"], password):
-            session["user"] = user["username"]
+        if current_user and bcrypt.check_password_hash(
+            current_user["user_password"], user_password
+        ):
+            # Create a user session
+            session["user_name"] = current_user["user_name"]
+            session["user_id"] = current_user["user_id"]
+
+            # Save successful login action
+            with get_db_connection() as conn:
+                with conn.cursor(dictionary=True) as cursor:
+                    cursor.execute(
+                        "INSERT INTO activity (activity_user_id, activity_action) VALUES (%s, %s)",
+                        (current_user["user_id"], "Logged in"),
+                    )
+                    conn.commit()
+
             flash("Login successful!", "success")
+
             return redirect(url_for("index"))
 
         else:
@@ -86,14 +117,26 @@ def login():
 
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
+    user_id = session.get("user_id")
+
+    if user_id is not None:
+        # Log logout action
+        with get_db_connection() as conn:
+            with conn.cursor(dictionary=True) as cursor:
+                cursor.execute(
+                    "INSERT INTO activity (activity_user_id, activity_action) VALUES (%s, %s)",
+                    (user_id, "Logged out"),
+                )
+                conn.commit()
+
+    session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
 
 
 @app.route("/", methods=["GET"])
 def index():
-    if "user" not in session:
+    if "user_name" not in session:
         return redirect(url_for("login"))
 
     return render_template(
@@ -103,11 +146,11 @@ def index():
 
 @app.route("/predict", methods=["GET", "POST"])
 def predict():
-    if "user" not in session:
+    if "user_name" not in session:
         flash("Please log in to make a prediction", "warning")
         return redirect(url_for("login"))
 
-    user_id = get_user_id(session.get("user"))
+    user_id = session.get("user_id")
 
     if not user_id:
         flash("User not found. Please log in again.", "danger")
@@ -141,20 +184,6 @@ def get_db_connection():
     return mysql.connector.connect(**db_config)
 
 
-def get_user_id(username):
-    """Retrieve the user ID for a given username."""
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT id FROM user WHERE username = %s", (username,))
-                user = cursor.fetchone()
-                return user.get("id") if user else None
-
-    except mysql.connector.Error as err:
-        logging.error(f"Database error: {err}")
-        return None
-
-
 def insert_to_db(user_id, date, country, store, product, prediction):
     """Insert sales prediction data into the database."""
     try:
@@ -162,10 +191,10 @@ def insert_to_db(user_id, date, country, store, product, prediction):
             with conn.cursor(dictionary=True) as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO prediction (user_id, date, country, store, product, prediction)
+                    INSERT INTO prediction (prediction_date, prediction_country, prediction_store, prediction_product, prediction_prediction, prediction_user_id)
                     VALUES (%s, %s, %s, %s, %s, %s)
                     """,
-                    (user_id, date, country, store, product, prediction),
+                    (date, country, store, product, prediction, user_id),
                 )
                 conn.commit()
                 flash("Prediction saved successfully!", "success")
@@ -183,10 +212,10 @@ def fetch_from_db(user_id):
             with conn.cursor(dictionary=True) as cursor:
                 cursor.execute(
                     """
-                    SELECT date, country, store, product, prediction
+                    SELECT prediction_date, prediction_country, prediction_store, prediction_product, prediction_prediction
                     FROM prediction 
-                    WHERE user_id = %s 
-                    ORDER BY date DESC
+                    WHERE prediction_user_id = %s 
+                    ORDER BY prediction_date DESC
                     LIMIT 10
                     """,
                     (user_id,),

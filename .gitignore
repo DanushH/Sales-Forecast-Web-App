@@ -182,3 +182,4 @@ logging/
 # data
 data/raw_data/
 data/cleaned/
+data/preprocessor/

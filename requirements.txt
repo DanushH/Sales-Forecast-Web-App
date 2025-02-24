@@ -5,5 +5,7 @@ flask-session
 flask-bcrypt
 kaggle
 pandas
+numpy
 joblib
 scikit-learn
+xgboost

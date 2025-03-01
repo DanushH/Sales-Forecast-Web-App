@@ -1,3 +1,5 @@
+CREATE DATABASE sales_predictions;
+
 CREATE TABLE user (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     user_name VARCHAR(50) NOT NULL UNIQUE,
@@ -11,7 +13,7 @@ CREATE TABLE prediction (
     prediction_country VARCHAR(100) NOT NULL,
     prediction_store VARCHAR(100) NOT NULL,
     prediction_product VARCHAR(100) NOT NULL,
-    prediction_prediction FLOAT NOT NULL,
+    prediction_prediction INT NOT NULL,
     prediction_user_id INT,
     FOREIGN KEY (prediction_user_id) REFERENCES user(user_id) ON DELETE CASCADE
 );

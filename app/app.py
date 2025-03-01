@@ -1,11 +1,15 @@
 # Imports
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_session import Session
-from flask_bcrypt import Bcrypt
-import mysql.connector
-import os
-import logging
 import config
+import logging
+import os
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_bcrypt import Bcrypt
+from flask_session import Session
+import mysql.connector
+import numpy as np
+import pandas as pd
+from pipelines.prediction_pipeline import predict_num_sold
+
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -231,8 +235,41 @@ def fetch_from_db(user_id):
 
 
 def calculate_prediction(date, country, store, product):
-    """Dummy function for sales prediction logic."""
-    return 100  # Placeholder prediction
+    """Function for sales prediction logic."""
+
+    data = {
+        "date": [date],
+        "country": [country],
+        "store": [store],
+        "product": [product],
+    }
+
+    input_data = pd.DataFrame(data)
+
+    input_data["country"] = input_data["country"].astype("category")
+    input_data["store"] = input_data["store"].astype("category")
+    input_data["product"] = input_data["product"].astype("category")
+
+    input_data["date"] = pd.to_datetime(input_data["date"])
+    input_data["year"] = input_data["date"].dt.year
+    input_data["month"] = input_data["date"].dt.month
+    input_data["day"] = input_data["date"].dt.day
+    input_data["day_of_week"] = input_data["date"].dt.dayofweek
+    input_data["is_weekend"] = input_data["date"].apply(
+        lambda x: 1 if x.weekday() >= 5 else 0
+    )
+    input_data.drop(columns=["date"], inplace=True)
+
+    logging.info(input_data)
+
+    num_sold_prediction = predict_num_sold(input_data)
+
+    if isinstance(num_sold_prediction, np.ndarray):
+        num_sold_prediction = num_sold_prediction.tolist()[0]
+
+    logging.info(num_sold_prediction)
+
+    return int(num_sold_prediction)
 
 
 if __name__ == "__main__":

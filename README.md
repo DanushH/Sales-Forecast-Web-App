@@ -4,8 +4,6 @@
 
 This web application allows users to input data and receive sales predictions based on selected criteria, such as date, country, store, and product. It is built with Flask, a Python web framework, and utilizes MySQL for database management. Users can sign up, log in, and view predictions generated through a simple user interface.
 
-> Note: This project is still in progress and subject to changes or improvements.
-
 ## Features
 
 - **User Authentication**: Sign up and log in to user account securely.
